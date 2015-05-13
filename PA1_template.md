@@ -113,6 +113,11 @@ We can use this function on `activity` data set to produce
 
 1. the required histogram
 
+
+```r
+c<-TotNumSteps_hist(activity,hist_title="Total number of steps a day\n (NA removed)")
+```
+
 ![](PA1_template_files/figure-html/make_hist_1-1.png) 
 
 2. and find out that mean and median take the values of 10766.19 

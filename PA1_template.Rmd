@@ -119,7 +119,7 @@ We can use this function on `activity` data set to produce
 
 1. the required histogram
 
-```{r make_hist_1, echo=FALSE}
+```{r make_hist_1}
 c<-TotNumSteps_hist(activity,hist_title="Total number of steps a day\n (NA removed)")
 ```
 
