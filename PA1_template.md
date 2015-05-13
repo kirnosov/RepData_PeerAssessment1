@@ -1,16 +1,6 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: Nikita Kirnosov
-output: 
-  html_document:
-    keep_md: true
----
-```{r custon_knitr, echo=FALSE}
-library(knitr)
-opts_chunk$set(echo = TRUE, message = FALSE, results = 'asis')
-knit_hooks$set(inline = function(x) {
-   if (is.numeric(x)) round(x, 2)})
-```
+# Reproducible Research: Peer Assessment 1
+Nikita Kirnosov  
+
 ## Introduction
 
 It is now possible to collect a large amount of data about personal
@@ -58,14 +48,16 @@ dataset.
 ## Loading and preprocessing the data
 
 Let's start by cleaning up the environment and loading libraries
-```{r load_libs, results='hide'}
+
+```r
 rm(list=ls())
 library("dplyr")
 library("ggplot2")
 ```
 
 Depending on what is already in the directory, download, unzip and/or read the file.
-```{r load_data}
+
+```r
 fileURL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 fileZIP <- "activity.zip"
 fileCSV <- "activity.csv"
@@ -79,7 +71,8 @@ activity <- read.csv(fileCSV,stringsAsFactors=FALSE)
 ```
 
 The only preprocessing step needed for now is to turn the date into POSIX format 
-```{r fix_date}
+
+```r
 activity$date <- as.POSIXct(activity$date, format="%Y-%m-%d")
 ```
 
@@ -90,7 +83,8 @@ For now, we will ignore NA values.
 Below the function which produces the histogram of the total number of steps
 per day and calculates mean and median values for this distribution is shown. 
 
-```{r make_hist_function}
+
+```r
 TotNumSteps_hist <- function(data,hist_title="Total number of steps a day"){
         # aggregate data to produce the total number of steps on a specific date
         steps_tot_day <- aggregate(steps ~ date, data, sum, na.rm=TRUE)
@@ -119,12 +113,10 @@ We can use this function on `activity` data set to produce
 
 1. the required histogram
 
-```{r make_hist_1, echo=FALSE}
-c<-TotNumSteps_hist(activity,hist_title="Total number of steps a day\n (NA removed)")
-```
+![](PA1_template_files/figure-html/make_hist_1-1.png) 
 
-2. and find out that mean and median take the values of `r c[1]` 
-and `r c[2]`, respectively. The median value is shown as a red vertical line
+2. and find out that mean and median take the values of 10766.19 
+and 10765, respectively. The median value is shown as a red vertical line
 in the histogram above.
 
 ## What is the average daily activity pattern?
@@ -133,39 +125,28 @@ We will approach this question in the following way:
 
 - create a data set which contains the mean (over all dates) values for each interval 
 
-```{r aggregate_means}
+
+```r
 mean_dt <- aggregate(steps ~ interval, activity, FUN="mean", na.rm=TRUE)
 names(mean_dt) <- c("interval", "mean_steps")
 ```
 
 - plot these values versus time corresponding to the intervals.
 
-```{r make_daily_activity, echo=FALSE}
-with( mean_dt, {plot( 
-     as.POSIXct(sprintf("%04d", interval), format="%H%M"),
-     mean_steps, 
-     col="blue",
-     type="l", 
-     lwd=2, 
-     xlab="Time (in 24-hour format)", 
-     ylab="Average number of steps", 
-     main="Daily Activity Levels")}
-)
-```
+![](PA1_template_files/figure-html/make_daily_activity-1.png) 
 
 - we can also calculate the interval when the most steps is made (on average):
 
-```{r calc_max}
+
+```r
 max_steps <- max(mean_dt$mean_steps)
 max <- mean_dt[ which(mean_dt$mean_steps == max_steps), 1]
 ```
 
 Which brings us to a conclusion that the greatest number of steps 
-(around `r round(max_steps,0)`) is made in the interval `r max`.
+(around 206) is made in the interval 835.
 
-```{r clean, echo=FALSE}
-rm(mean_dt)
-```
+
 
 ## Imputing missing values
 
@@ -176,7 +157,8 @@ replace NA's with the average values for that specific time of the week.
 To start with, let us add columns containing the day of the week and 
 `Weekday`/`Weekend` label to the `activity` data frame.
 
-```{r activity+weekday+daytype}
+
+```r
 activity <- mutate(activity,weekday=weekdays(date), daytype= as.factor(ifelse(
         weekdays(date) %in% c("Saturday","Sunday"), "Weekend", "Weekday")))
 ```
@@ -184,14 +166,16 @@ activity <- mutate(activity,weekday=weekdays(date), daytype= as.factor(ifelse(
 Next, we create a data frame `mean_data` containing mean activity levels for
 each pair of `interval` and `weekday` values:
 
-```{r mean_data}
+
+```r
 mean_data <- aggregate(steps ~ interval + weekday, activity,FUN="mean",na.rm=TRUE)
 colnames(mean_data) <- c("interval","weekday","mean_steps")
 ```
 
 Afterwards, we create a new column `mean_steps` and replace NAs with it's values.
 
-```{r activity+mean_steps}
+
+```r
 activity <- merge(activity,mean_data,by=c("weekday","interval"))
 activity <- mutate(activity,steps = ifelse(is.na(steps), mean_steps , steps))
 ```
@@ -199,19 +183,23 @@ activity <- mutate(activity,steps = ifelse(is.na(steps), mean_steps , steps))
 Once we have a corrected data set, we call the previously defined function 
 `TotNumSteps_hist` for this data.
 
-```{r hist2, results='hide'}
+
+```r
 c <- TotNumSteps_hist(activity,hist_title="Total number of steps a day\n (NA filled)")
 ```
 
-Notice that the histogram had noticeably changed; so did the mean (`r c[1]`) and 
-median (`r c[2]`) values.
+![](PA1_template_files/figure-html/hist2-1.png) 
+
+Notice that the histogram had noticeably changed; so did the mean (10821.21) and 
+median (11015) values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 In order to answer this question, we will summarize the `activity` data by `daytype`
 and plot the mean values for all intervals.
 
-```{r weekdays_vs_weekends}
+
+```r
 activity <- activity %>% group_by(daytype, interval) %>% summarise(mean_steps = mean(steps))
 ggplot(activity, aes(x=interval,
                      y=mean_steps)) + 
@@ -221,10 +209,13 @@ ggplot(activity, aes(x=interval,
         theme_bw()
 ```
 
+![](PA1_template_files/figure-html/weekdays_vs_weekends-1.png) 
+
 As one can see, there is a significant difference between two plots.
 Weekdays are characterized by a high peak in the morning, while 
 weekend activity is much more evenly distributed.
 
-```{r}
+
+```r
 rm(list=ls())
 ```
