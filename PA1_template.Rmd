@@ -70,7 +70,7 @@ fileURL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 fileZIP <- "activity.zip"
 fileCSV <- "activity.csv"
 if (!file.exists(fileZIP) & !file.exists(fileCSV)  ) {
-        download.file(fileURL,destfile="fileZIP_test.zip",method="curl")
+        download.file(fileURL,destfile=fileZIP,method="curl")
 }
 if (file.exists(fileZIP) & !file.exists(fileCSV)  ) {
         unzip(zipfile=fileZIP)
